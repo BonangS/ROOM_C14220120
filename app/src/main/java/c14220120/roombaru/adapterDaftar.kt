@@ -4,11 +4,17 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.view.menu.MenuView.ItemView
 import androidx.recyclerview.widget.RecyclerView
 import c14220120.room.database.daftarBelanja
+import c14220120.roombaru.database.HistoryBarang
+import c14220120.roombaru.database.HistoryBarangDB
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 
 class adapterDaftar(private val daftarBelanja: MutableList<daftarBelanja>):
     RecyclerView.Adapter<adapterDaftar.ListViewHolder>(){
@@ -44,8 +50,21 @@ class adapterDaftar(private val daftarBelanja: MutableList<daftarBelanja>):
         holder._btnDelete.setOnClickListener{
             onItemClickCallback.delData(daftar)
         }
-
+        holder._btnSelesai.setOnClickListener{
+            CoroutineScope(Dispatchers.IO).async {
+                val historyBarangDB = HistoryBarangDB.getDatabase(it.context)
+                historyBarangDB.funHistoryBarangDAO().insert(
+                    HistoryBarang(
+                        tanggal = daftar.tanggal,
+                        item = daftar.item,
+                        jumlah = daftar.jumlah
+                    )
+                )
+                onItemClickCallback.delData(daftar)
+            }
+        }
     }
+
     class ListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var _tvTanggal = itemView.findViewById<TextView>(R.id.tvTanggal)
         var _tvItemBarang = itemView.findViewById<TextView>(R.id.tvItemBarang)
@@ -53,6 +72,7 @@ class adapterDaftar(private val daftarBelanja: MutableList<daftarBelanja>):
 
         var _btnEdit = itemView.findViewById<ImageButton>(R.id.btn_edit)
         var _btnDelete = itemView.findViewById<ImageButton>(R.id.btn_delete)
+        var _btnSelesai = itemView.findViewById<Button>(R.id.btnSelesai)
     }
     interface OnItemClickCallback {
         fun delData(dtBelanja: daftarBelanja)
